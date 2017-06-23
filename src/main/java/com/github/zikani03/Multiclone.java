@@ -10,12 +10,16 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Multiclone API
  *
  */
 public class Multiclone {
+    private final int MAXIMUM_THREAD_COUNT = 3;
+    private static final String BANNER = "Cloning [%s] repos from %s to %s %n";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -28,6 +32,8 @@ public class Multiclone {
      * Whether or not to check if the repository exists before trying to process
      */
     private boolean checkRepoExists = false;
+
+    private ExecutorService executorService;
 
     public Multiclone(String organizationApiUrl, String gitUrlTemplate) {
         this.organizationApiUrl = organizationApiUrl;
@@ -43,14 +49,28 @@ public class Multiclone {
     }
 
     public void process(String organizationName, List<String> repoNames, Path targetDir) {
-        if (checkRepoExists) {
-            verifyAndclone(organizationName, repoNames, targetDir);
-        } else {
-            cloneWithoutVerification(organizationName, repoNames, targetDir);
+        int repoCount = repoNames.size();
+        if (executorService == null) {
+            this.executorService = Executors.newFixedThreadPool(repoCount > MAXIMUM_THREAD_COUNT ? MAXIMUM_THREAD_COUNT : repoCount);
         }
+
+        // Write out the banner
+        System.out.printf(BANNER, repoCount, organizationName, targetDir.toString());
+
+        cloneAll(organizationName, repoNames, targetDir);
+
+        executorService.shutdown();
     }
 
-    private void cloneWithoutVerification(String organizationName, List<String> repoNames, Path targetDir) {
+    private void cloneAll(String organizationName, List<String> repoNames, Path targetDir) {
+
+        if (checkRepoExists) {
+            try {
+                List<RepoInfo> repos = getRepoInfos(organizationName, repoNames);
+            } catch (HttpClient.HttpException | IOException e) {
+                throw new RuntimeException("Failed to verify repo");
+            }
+        }
         for(String repoName: repoNames) {
             RepoInfo repo = new RepoInfo();
             repo.setName(repoName);
@@ -58,8 +78,7 @@ public class Multiclone {
             repo.setFullName(String.format("%s/%s", organizationName, repoName));
             repo.setLanguage("unknown");
             repo.setSize(0);
-
-            clone(targetDir, repo);
+            executorService.execute(() -> clone(targetDir, repo));
         }
     }
 
@@ -68,32 +87,16 @@ public class Multiclone {
                 .replace("{repo}",repo);
     }
 
-    private void verifyAndclone(String organizationName, List<String> repoNames, Path targetDir) {
-        try {
-            List<RepoInfo> repos = getRepoInfos(organizationName, repoNames);
-            for(RepoInfo repo : repos) {
-                clone(targetDir, repo);
-            }
-        } catch (HttpClient.HttpException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private void clone(Path targetDir, RepoInfo repo) {
         try {
-            System.out.println("Processing repo: " + repo.getName());
+            this.cloneRepository(targetDir, repo);
+        } catch (GitAPIException ige) {
             if (isSkipOnFailure()) {
-                try {
-                    this.cloneRepository(targetDir, repo);
-                } catch (GitAPIException ige) {
-                    // log
-                    ige.printStackTrace();
-                }
+                System.out.println("Failed to clone: " + repo.getName() + ". Skipping.");
             } else {
-                this.cloneRepository(targetDir, repo);
+                ige.printStackTrace();
+                throw new RuntimeException("Failed to clone repo: " + repo);
             }
-        } catch (GitAPIException ge) {
-            ge.printStackTrace();
         }
     }
 
@@ -123,9 +126,10 @@ public class Multiclone {
     private void cloneRepository(Path targetDir, RepoInfo repo) throws GitAPIException {
         CloneCommand clone = Git.cloneRepository();
         clone.setURI(repo.getGitUrl());
+        clone.setProgressMonitor(new CloningProgressMonitor(repo));
         clone.setDirectory(targetDir.resolve(repo.getName()).toFile());
-        Git git = clone.call();
-        git.close();
-        git = null;
+        try(Git git = clone.call()) {
+            System.out.println("Completed downloading: " + repo.getName());
+        }
     }
 }
