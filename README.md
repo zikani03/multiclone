@@ -18,12 +18,22 @@ open-source from GitHub*. You would use the following commands:
 $ java -jar multiclone.jar twitter chill diffy pelikan secureheaders cascading heron sslconfig
 ```
 
-* Sounds like *Chill, diffy Peli can secure headers cascading her own sslconfig*
+*Sounds like *Chill diffy, Peli can secure headers cascading her own sslconfig*
 
 ## TODO
 
+* Prioritize repo downloads by repository size, based on info from GitHub (iff possible)
 * Add argparse4j or airbrake's commandline arguments parser
-* Prioritize repo downloads by repository size, based on info from GitHub
+* Allow user to specify custom directory for repos to go into
+* Clone submodules
+* Support renaming repo directory name
+
+# Usage 
+
+
+```sh
+$ java -jar multiclone.jar segmentio segmentio-stack events
+```
 
 # LICENSE
 
