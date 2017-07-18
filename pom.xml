@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.zikani03</groupId>
     <artifactId>multiclone</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
 
     <name>Multiclone</name>
     <description>Clone multiple repos from an organization on GitHub easily.</description>
@@ -35,34 +35,27 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.reactivex.rxjava2</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>${rxjava.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
             <version>${jgit.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <!--
         <dependency>
             <groupId>com.moandjiezana.toml</groupId>
             <artifactId>toml4j</artifactId>
             <version>0.7.1</version>
         </dependency>
+        -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.12</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.sparkjava</groupId>
@@ -127,6 +120,7 @@
                         <excludes>
                             <exclude>org.slf4j:slf4j-log4j12</exclude>
                             <exclude>com.sparkjava:spark-debug-tools</exclude>
+                            <exclude>com.sparkjava:spark-core</exclude>
                         </excludes>
                     </artifactSet>
                     <filters>
