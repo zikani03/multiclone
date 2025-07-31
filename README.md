@@ -14,14 +14,14 @@ If you were interested in getting the following repos: [chill](https://github.co
 [diffy](https://github.com/twitter/diffy), [pelikan](https://github.com/twitter/pelikan), [secureheaders](https://github.com/twitter/secureheaders), [cascading](https://github.com/twitter/cascading), [heron](https://github.com/twitter/heron) and [sslconfig](https://github.com/twitter/sslconfig) from [Twitter's open-source from GitHub](https://github.com/twitter)*. You would use the following commands:
 
 ```sh
-$ java -jar multiclone.jar twitter chill diffy pelikan secureheaders cascading heron sslconfig
+$ multiclone twitter chill diffy pelikan secureheaders cascading heron sslconfig
 ```
 
 *Sounds like *Chill diffy, Peli can secure headers cascading her own sslconfig* - don't ask me what that means.
 
 ## TODO
 
-* **WRITE IT IN RUST!!!**
+* Implement advanced repository selection features
 
 * Prioritize repo downloads by repository size, based on info from GitHub/Bitbucket (iff possible)
 * Allow user to specify custom directory for repos to go into
@@ -33,15 +33,14 @@ $ java -jar multiclone.jar twitter chill diffy pelikan secureheaders cascading h
 $ multiclone [ORGANISATION] [REPOSITORY NAMES...]
 ```
 
-You will have to build it first, yo.
+You will have to build it first with Cargo.
 
 ```sh
 $ git clone https://github.com/zikani03/multiclone.git
 $ cd multiclone
-$ mvn clean install
-$ chmod +x ./multiclone.sh
+$ cargo build --release
 $ # Download some repositories from https://github.com/creditdatamw
-$ multiclone creditdatamw zerocell spark-pentaho-report cakephp-audit-log
+$ ./target/release/multiclone creditdatamw zerocell spark-pentaho-report cakephp-audit-log
 $ ls creditdatamw
 zerocell  spark-pentaho-report  cakephp-audit-log
 ```
